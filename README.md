@@ -1,2 +1,2 @@
 # rest-api
-min stack: node.js, mysql, typescript
+nodejs, ts and mysql used
