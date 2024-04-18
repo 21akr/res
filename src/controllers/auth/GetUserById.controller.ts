@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
-import { db } from '../../../App';
-import { RowDataPacket } from 'mysql2';
+import { UserService } from '../../services';
 
 export async function GetUserByIdController(req: Request, res: Response) {
   const userId = req.user.id;
 
   try {
-    const [rows] = await db.promise().query<RowDataPacket[]>('SELECT id FROM users WHERE id = ?', [userId]);
-    if (rows.length === 0) {
+    const [rows] = await UserService.getUserIdById(userId);
+    if(rows.length === 0) {
       return res.status(404).send('User not found');
     }
 

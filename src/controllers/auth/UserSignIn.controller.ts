@@ -5,6 +5,7 @@ import { db } from '../../../App';
 import { UserSignUpParams } from '../../definitions';
 import { RowDataPacket } from 'mysql2';
 import { UserAccessTokenStatusEnum } from '../../definitions/enums';
+import { UserService } from "../../services";
 
 export async function UserSignInController(req: Request, res: Response) {
   let params: UserSignUpParams;
@@ -18,25 +19,25 @@ export async function UserSignInController(req: Request, res: Response) {
 
   try {
     const [rows] = await db.promise().query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [params.id]);
-    if (rows.length === 0) {
+    if(rows.length === 0) {
       return res.status(404).send('User not found');
     }
 
     const user = rows[0];
     const userId = user.id;
 
-    if (!(await bcrypt.compare(params.password, user.password))) {
+    if(!(await bcrypt.compare(params.password, user.password))) {
       return res.status(401).send('Error: User is unauthorized');
     }
 
-    const accessToken = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: '10m' });
-    const refreshToken = jwt.sign({ userId: userId }, process.env.JWT_SECRET);
-    const new_status = UserAccessTokenStatusEnum.ACTIVE.toString();
+    const accessToken = jwt.sign({userId: userId}, process.env.JWT_SECRET, {expiresIn: '10m'});
+    const refreshToken = jwt.sign({userId: userId}, process.env.JWT_SECRET);
+    const newStatus = UserAccessTokenStatusEnum.ACTIVE.toString();
 
-    await db.promise().query('UPDATE users SET status = ? WHERE id = ?', [new_status, userId]);
+    await UserService.updateStatusById(newStatus, userId);
     await db.promise().query('INSERT INTO tokens (user_id, refresh_token) VALUES (?, ?)', [userId, refreshToken]);
 
-    res.json({ accessToken, refreshToken, status: new_status });
+    res.json({accessToken, refreshToken, status: newStatus});
   } catch (err: any) {
     console.error('Error signing in:', err.message);
     return res.status(500).send('Internal server error');
