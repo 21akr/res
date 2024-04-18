@@ -15,20 +15,24 @@ export async function UserSignUpController(req: Request, res: Response) {
   }
 
   try {
-    db.query('SELECT id FROM users WHERE id = ?', params.id, async (err, result) => {
-      if (err) {
+    db.query<RowDataPacket[]>('SELECT id FROM users WHERE id = ?', params.id, async (err, result) => {
+      if(err) {
         console.error('Error checking email:', err.message);
         return res.status(500).send('Internal server error');
       }
 
-      if ((result as RowDataPacket[]).length > 0) {
+      if(result.length > 0) {
         return res.status(409).send('This email belongs to an existing user');
+      }
+
+      if(params.password.length < 6) {
+        return res.status(400).send('Password must be at least 6 characters long');
       }
 
       const hashedPassword = await bcrypt.hash(params.password, 10);
 
-      db.query('INSERT INTO users SET ?', { id: params.id, password: hashedPassword }, err => {
-        if (err) {
+      db.query('INSERT INTO users SET ?', {id: params.id, password: hashedPassword}, err => {
+        if(err) {
           console.error('Error inserting user:', err.message);
           return res.status(500).send('Internal server error');
         }

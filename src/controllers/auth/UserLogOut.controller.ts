@@ -1,14 +1,15 @@
 import { Request, Response } from 'express';
 import { db } from '../../../App';
 import { UserAccessTokenStatusEnum } from '../../definitions/enums';
+import { UserService } from '../../services';
 
 export async function UserLogOutController(req: Request, res: Response) {
   const userId = req.user.id;
-  const new_status = UserAccessTokenStatusEnum.INACTIVE.toString();
+  const newStatus = UserAccessTokenStatusEnum.INACTIVE.toString();
 
   try {
     const result = await db.promise().query('DELETE FROM tokens WHERE user_id = ?', [userId]);
-    await db.promise().query('UPDATE users SET status = ? WHERE id = ?', [new_status, userId]);
+    await UserService.updateStatusById(newStatus, userId)
     const resultSetHeader = result[0] as any;
 
     if (resultSetHeader.affectedRows > 0) {

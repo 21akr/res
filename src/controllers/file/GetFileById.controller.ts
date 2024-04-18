@@ -1,14 +1,13 @@
 import { Request, Response } from 'express';
-import { db } from '../../../App';
-import { RowDataPacket } from 'mysql2';
+import { FileService } from '../../services';
 
 export async function GetFileByIdController(req: Request, res: Response) {
   const fileId = req.params.id;
 
   try {
-    const [rows] = await db.promise().query<RowDataPacket[]>('SELECT * FROM files WHERE id = ?', [fileId]);
+    const [rows] = await FileService.getById(fileId);
 
-    if (rows.length === 0) {
+    if(rows.length === 0) {
       return res.status(404).send('File not found');
     }
 
