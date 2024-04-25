@@ -1,1 +1,1 @@
-export * from './UserAccessTokenStatus.enum';
+export * from './Status.enum';
